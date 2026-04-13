@@ -5,8 +5,7 @@ from agent import ITSupportAgent
 def run_evaluation():
     print("📊 INITIALIZING LLM-AS-A-JUDGE EVALUATION PIPELINE...\n")
     
-    # 1. The "Ground Truth" Test Dataset
-    # In a real company, this would be 1,000 historical tickets verified by humans.
+   
     # We will use 6 highly diverse tickets to test the edge cases of your Agent.
     test_data = [
         {"issue": "My screen went completely black and it smells like burning plastic.", "true_category": "HARDWARE"},
