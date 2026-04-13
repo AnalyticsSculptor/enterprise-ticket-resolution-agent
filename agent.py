@@ -1,8 +1,7 @@
 import os
 
 
-# Force the Hugging Face token into the environment BEFORE LangChain loads
-os.environ["HF_TOKEN"] = "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"
+os.environ["HF_TOKEN"] = os.environ.get("SECURE_HF_TOKEN", "")
 import json
 import time
 from dotenv import load_dotenv
@@ -102,7 +101,7 @@ class ITSupportAgent:
         # ==========================================
         # LAYER 3: SAVE TO CACHE
         # ==========================================
-        # We save the AI's brilliant answer into the Cache DB for the next person
+       
         cache_doc = Document(page_content=clean_json, metadata={"original_issue": user_issue})
         self.cache_db.add_documents([cache_doc])
 
