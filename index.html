@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IT Service Desk AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 font-sans h-screen flex flex-col items-center py-10">
+
+    <div class="w-full max-w-2xl bg-white shadow-sm rounded-xl p-8 mb-6 border border-slate-200">
+        <h1 class="text-3xl font-bold text-slate-800 flex items-center gap-3">
+            <span>🛡️</span> AutoTriage Service Desk
+        </h1>
+        <p class="text-slate-500 mt-2">Describe your IT issue below. Our Llama-3 AI agent will instantly route and attempt to resolve it.</p>
+    </div>
+
+    <div class="w-full max-w-2xl bg-white shadow-lg rounded-xl p-8 border border-slate-200">
+        <label class="block text-sm font-semibold text-slate-700 mb-2">Issue Description</label>
+        <textarea id="issueInput" rows="4" class="w-full border border-slate-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" placeholder="e.g., The production SQL database is locked and queries are timing out..."></textarea>
+        
+        <button id="submitBtn" onclick="submitTicket()" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200 flex justify-center items-center">
+            <span id="btnText">Submit Ticket to AI</span>
+            <svg id="loadingSpinner" class="hidden animate-spin ml-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+        </button>
+    </div>
+
+    <div id="resultCard" class="hidden w-full max-w-2xl bg-slate-800 shadow-xl rounded-xl p-8 mt-6 border border-slate-700 text-white">
+        <div class="flex justify-between items-start mb-6">
+            <div>
+                <p class="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-1">Assigned Category</p>
+                <h2 id="resCategory" class="text-3xl font-bold text-emerald-400">DATABASE</h2>
+            </div>
+            <div class="text-right">
+                <p class="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-1">AI Confidence</p>
+                <h2 id="resConfidence" class="text-3xl font-bold text-white">90%</h2>
+            </div>
+        </div>
+
+        <div class="bg-slate-900 rounded-lg p-5 mb-4 border border-slate-700">
+            <p class="text-emerald-400 text-sm font-semibold mb-2 flex items-center gap-2"><span>🔧</span> Suggested Resolution</p>
+            <p id="resFix" class="text-slate-200">Optimize resource allocation...</p>
+        </div>
+
+        <div class="bg-slate-900 rounded-lg p-5 border border-slate-700">
+            <p class="text-blue-400 text-sm font-semibold mb-2 flex items-center gap-2"><span>🧠</span> AI Reasoning Trace</p>
+            <p id="resReasoning" class="text-slate-300 text-sm leading-relaxed">The issue is directly related to...</p>
+            <p id="resMath" class="text-slate-400 text-xs mt-3 font-mono border-t border-slate-700 pt-3">Math: Start at 0.0...</p>
+        </div>
+    </div>
+
+    <script>
+        async function submitTicket() {
+            const input = document.getElementById('issueInput').value;
+            if (!input) return alert("Please enter an issue description.");
+
+            // UI Loading State
+            document.getElementById('btnText').innerText = "AI is thinking...";
+            document.getElementById('loadingSpinner').classList.remove('hidden');
+            document.getElementById('resultCard').classList.add('hidden');
+
+            try {
+                // Call your FastAPI Backend
+                const response = await fetch('/api/triage',  {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ issue: input })
+                });
+                
+                const data = await response.json();
+
+                // Update the UI with AI results
+                document.getElementById('resCategory').innerText = data.category || "UNKNOWN";
+                document.getElementById('resConfidence').innerText = (data.confidence * 100).toFixed(0) + "%";
+                document.getElementById('resFix').innerText = data.suggested_resolution || "Escalated to human support.";
+                document.getElementById('resReasoning').innerText = data.reasoning_trace || "No reasoning provided.";
+                document.getElementById('resMath').innerText = "Confidence Math: " + (data.confidence_calculation || "N/A");
+
+                // Change colors based on confidence
+                if (data.confidence < 0.75) {
+                    document.getElementById('resCategory').classList.replace('text-emerald-400', 'text-amber-400');
+                    document.getElementById('resCategory').innerText += " (ESCALATED)";
+                } else {
+                    document.getElementById('resCategory').classList.replace('text-amber-400', 'text-emerald-400');
+                }
+
+                // Show the card
+                document.getElementById('resultCard').classList.remove('hidden');
+
+            } catch (error) {
+                alert("Error connecting to the AI backend. Is your FastAPI server running?");
+            } finally {
+                // Reset UI
+                document.getElementById('btnText').innerText = "Submit Ticket to AI";
+                document.getElementById('loadingSpinner').classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
