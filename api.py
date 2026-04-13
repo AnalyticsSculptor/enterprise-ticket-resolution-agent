@@ -8,8 +8,8 @@ from agent import ITSupportAgent
 # 1. Initialize the FastAPI App
 app = FastAPI(title="Enterprise AutoTriage API")
 
-# 2. Configure CORS (Crucial!)
-# This allows your frontend (HTML file) to securely talk to this backend
+# 2. 
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], 
